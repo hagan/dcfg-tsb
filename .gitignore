@@ -17,9 +17,7 @@ apps/rclone/rclone.conf
 apps/rclone/rclone-env.sh
 
 # SSH (keys and config are host-specific, synced to encrypted cloud)
-apps/ssh/id_*
-apps/ssh/*.pem
-apps/ssh/known_hosts
+apps/ssh/keys/
 apps/ssh/config
 apps/ssh/config.local
 

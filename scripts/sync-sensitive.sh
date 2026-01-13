@@ -19,8 +19,11 @@ NC="\033[0m"
 # Files to sync (relative to apps/)
 SENSITIVE_FILES=(
     "Yubico/u2f_keys"
-    "ssh/id_ed25519_sk"
-    "ssh/id_ed25519_sk.pub"
+)
+
+# Directories to sync (all files within, relative to apps/)
+SENSITIVE_DIRS=(
+    "ssh/keys"
 )
 
 # Host-specific files (stored with .<hostname> suffix in cloud)
@@ -55,6 +58,24 @@ cmd_push() {
             printf '%b[pushed]%b %s\n' "$GREEN" "$NC" "$file"
         else
             printf '%b[skip]%b %s (not found locally)\n' "$YELLOW" "$NC" "$file"
+        fi
+    done
+
+    # Handle directories (sync all files within)
+    for dir in "${SENSITIVE_DIRS[@]}"; do
+        local_dir="$LOCAL_DIR/$dir"
+        remote_dir="$REMOTE_DIR/$dir"
+
+        if [ -d "$local_dir" ]; then
+            mkdir -p "$remote_dir"
+            for file in "$local_dir"/*; do
+                [ -f "$file" ] || continue
+                filename=$(basename "$file")
+                cp "$file" "$remote_dir/$filename"
+                printf '%b[pushed]%b %s/%s\n' "$GREEN" "$NC" "$dir" "$filename"
+            done
+        else
+            printf '%b[skip]%b %s/ (directory not found)\n' "$YELLOW" "$NC" "$dir"
         fi
     done
 
@@ -104,6 +125,26 @@ cmd_pull() {
             printf '%b[pulled]%b %s\n' "$GREEN" "$NC" "$file"
         else
             printf '%b[skip]%b %s (not found in cloud)\n' "$YELLOW" "$NC" "$file"
+        fi
+    done
+
+    # Handle directories (sync all files within)
+    for dir in "${SENSITIVE_DIRS[@]}"; do
+        local_dir="$LOCAL_DIR/$dir"
+        remote_dir="$REMOTE_DIR/$dir"
+
+        if [ -d "$remote_dir" ]; then
+            mkdir -p "$local_dir"
+            for file in "$remote_dir"/*; do
+                [ -f "$file" ] || continue
+                filename=$(basename "$file")
+                cp "$file" "$local_dir/$filename"
+                # Restore secure permissions for private keys
+                [[ "$filename" != *.pub ]] && chmod 600 "$local_dir/$filename"
+                printf '%b[pulled]%b %s/%s\n' "$GREEN" "$NC" "$dir" "$filename"
+            done
+        else
+            printf '%b[skip]%b %s/ (directory not found in cloud)\n' "$YELLOW" "$NC" "$dir"
         fi
     done
 
@@ -163,6 +204,32 @@ cmd_status() {
         [ -f "$remote_file" ] && remote_status="present"
 
         printf '%-30s %-10s %-10s\n' "$file" "$local_status" "$remote_status"
+    done
+
+    # Handle directories
+    for dir in "${SENSITIVE_DIRS[@]}"; do
+        local_dir="$LOCAL_DIR/$dir"
+        remote_dir="$REMOTE_DIR/$dir"
+
+        # List all files from both local and remote
+        local_files=()
+        remote_files=()
+        [ -d "$local_dir" ] && local_files=($(ls "$local_dir" 2>/dev/null))
+        [ -d "$remote_dir" ] && remote_files=($(ls "$remote_dir" 2>/dev/null))
+
+        # Combine unique filenames
+        all_files=($(printf '%s\n' "${local_files[@]}" "${remote_files[@]}" | sort -u))
+
+        for filename in "${all_files[@]}"; do
+            [ -z "$filename" ] && continue
+            local_status="missing"
+            remote_status="missing"
+
+            [ -f "$local_dir/$filename" ] && local_status="present"
+            [ -f "$remote_dir/$filename" ] && remote_status="present"
+
+            printf '%-30s %-10s %-10s\n' "$dir/$filename" "$local_status" "$remote_status"
+        done
     done
 
     # Handle host-specific files
