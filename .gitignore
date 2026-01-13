@@ -1,0 +1,55 @@
+# dcfg-tsb .gitignore
+# Track everything by default, explicitly ignore sensitive/local files
+
+# ============================================================
+# Local overrides (machine-specific, not tracked)
+# ============================================================
+config/local.conf
+shell/bash/.bashrc.local
+shell/zsh/.zshrc.local
+
+# ============================================================
+# Secrets and credentials (NEVER track)
+# ============================================================
+# Rclone config contains OAuth tokens
+apps/rclone/rclone.conf
+apps/rclone/rclone-env.sh
+
+# SSH keys (config is ok, keys are not)
+apps/ssh/id_*
+apps/ssh/*.pem
+apps/ssh/known_hosts
+
+# GPG
+apps/gnupg/
+
+# Yubico FIDO2 keys (reveals registered devices)
+apps/Yubico/u2f_keys
+
+# Any .env files with secrets
+*.env
+!*.env.example
+
+# ============================================================
+# Claude AI context (local only)
+# ============================================================
+CLAUDE.md
+.claude/
+
+# ============================================================
+# Generated/cache files
+# ============================================================
+*.pyc
+__pycache__/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# Editor/IDE
+# ============================================================
+.vscode/
+.idea/
+*.sublime-*
