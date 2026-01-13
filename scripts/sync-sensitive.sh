@@ -20,6 +20,11 @@ SENSITIVE_FILES=(
     "Yubico/u2f_keys"
 )
 
+# Files with absolute paths (local:remote pairs, remote relative to REMOTE_DIR)
+SENSITIVE_PATHS=(
+    "$HOME/.config/rclone/rclone.conf:rclone/rclone.conf"
+)
+
 check_mount() {
     if ! mountpoint -q "$REMOTE_DIR" 2>/dev/null; then
         printf '%b[error]%b Encrypted mount not available: %s\n' "$RED" "$NC" "$REMOTE_DIR"
@@ -45,6 +50,21 @@ cmd_push() {
         fi
     done
 
+    # Handle absolute path files
+    for pair in "${SENSITIVE_PATHS[@]}"; do
+        local_file="${pair%%:*}"
+        remote_rel="${pair##*:}"
+        remote_file="$REMOTE_DIR/$remote_rel"
+
+        if [ -f "$local_file" ]; then
+            mkdir -p "$(dirname "$remote_file")"
+            cp "$local_file" "$remote_file"
+            printf '%b[pushed]%b %s\n' "$GREEN" "$NC" "$remote_rel"
+        else
+            printf '%b[skip]%b %s (not found locally)\n' "$YELLOW" "$NC" "$remote_rel"
+        fi
+    done
+
     printf '\n%bDone. Files synced to encrypted cloud storage.%b\n' "$GREEN" "$NC"
 }
 
@@ -62,6 +82,21 @@ cmd_pull() {
             printf '%b[pulled]%b %s\n' "$GREEN" "$NC" "$file"
         else
             printf '%b[skip]%b %s (not found in cloud)\n' "$YELLOW" "$NC" "$file"
+        fi
+    done
+
+    # Handle absolute path files
+    for pair in "${SENSITIVE_PATHS[@]}"; do
+        local_file="${pair%%:*}"
+        remote_rel="${pair##*:}"
+        remote_file="$REMOTE_DIR/$remote_rel"
+
+        if [ -f "$remote_file" ]; then
+            mkdir -p "$(dirname "$local_file")"
+            cp "$remote_file" "$local_file"
+            printf '%b[pulled]%b %s\n' "$GREEN" "$NC" "$remote_rel"
+        else
+            printf '%b[skip]%b %s (not found in cloud)\n' "$YELLOW" "$NC" "$remote_rel"
         fi
     done
 
@@ -91,6 +126,21 @@ cmd_status() {
         [ -f "$remote_file" ] && remote_status="present"
 
         printf '%-30s %-10s %-10s\n' "$file" "$local_status" "$remote_status"
+    done
+
+    # Handle absolute path files
+    for pair in "${SENSITIVE_PATHS[@]}"; do
+        local_file="${pair%%:*}"
+        remote_rel="${pair##*:}"
+        remote_file="$REMOTE_DIR/$remote_rel"
+
+        local_status="missing"
+        remote_status="missing"
+
+        [ -f "$local_file" ] && local_status="present"
+        [ -f "$remote_file" ] && remote_status="present"
+
+        printf '%-30s %-10s %-10s\n' "$remote_rel" "$local_status" "$remote_status"
     done
 }
 

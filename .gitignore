@@ -7,6 +7,7 @@
 config/local.conf
 shell/bash/.bashrc.local
 shell/zsh/.zshrc.local
+apps/git/config.local
 
 # ============================================================
 # Secrets and credentials (NEVER track)

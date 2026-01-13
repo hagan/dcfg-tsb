@@ -1,0 +1,38 @@
+# Git configuration
+# Note: Set user.name and user.email in ~/.dcfg-tsb/apps/git/config.local (gitignored)
+
+[include]
+    path = ~/.dcfg-tsb/apps/git/config.local
+
+[core]
+    excludesfile = ~/.dcfg-tsb/apps/git/ignore
+    autocrlf = input
+    editor = vim
+
+[init]
+    defaultBranch = main
+
+[pull]
+    rebase = false
+
+[push]
+    default = current
+    autoSetupRemote = true
+
+[fetch]
+    prune = true
+
+[diff]
+    colorMoved = default
+
+[merge]
+    conflictstyle = diff3
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    lg = log --oneline --graph --decorate
+    last = log -1 HEAD
+    unstage = reset HEAD --
