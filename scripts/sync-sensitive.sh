@@ -23,6 +23,8 @@ SENSITIVE_FILES=(
 # Files with absolute paths (local:remote pairs, remote relative to REMOTE_DIR)
 SENSITIVE_PATHS=(
     "$HOME/.config/rclone/rclone.conf:rclone/rclone.conf"
+    "$HOME/.ssh/id_ed25519_sk:ssh/id_ed25519_sk"
+    "$HOME/.ssh/id_ed25519_sk.pub:ssh/id_ed25519_sk.pub"
 )
 
 check_mount() {
