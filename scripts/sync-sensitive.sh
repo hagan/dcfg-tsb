@@ -18,13 +18,13 @@ NC="\033[0m"
 # Files to sync (relative to apps/)
 SENSITIVE_FILES=(
     "Yubico/u2f_keys"
+    "ssh/id_ed25519_sk"
+    "ssh/id_ed25519_sk.pub"
 )
 
 # Files with absolute paths (local:remote pairs, remote relative to REMOTE_DIR)
 SENSITIVE_PATHS=(
     "$HOME/.config/rclone/rclone.conf:rclone/rclone.conf"
-    "$HOME/.ssh/id_ed25519_sk:ssh/id_ed25519_sk"
-    "$HOME/.ssh/id_ed25519_sk.pub:ssh/id_ed25519_sk.pub"
 )
 
 check_mount() {
