@@ -16,10 +16,11 @@ apps/git/config.local
 apps/rclone/rclone.conf
 apps/rclone/rclone-env.sh
 
-# SSH keys (config is ok, keys are not)
+# SSH (keys and config are host-specific, synced to encrypted cloud)
 apps/ssh/id_*
 apps/ssh/*.pem
 apps/ssh/known_hosts
+apps/ssh/config
 apps/ssh/config.local
 
 # GPG

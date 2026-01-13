@@ -9,6 +9,7 @@ REPO_ROOT=$(cd "${SCRIPT_DIR}/.." && pwd)
 
 REMOTE_DIR="$HOME/mnt/dotconfig-secure"
 LOCAL_DIR="$REPO_ROOT/apps"
+HOSTNAME=$(hostname | tr '[:upper:]' '[:lower:]' | cut -d. -f1)
 
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
@@ -20,6 +21,11 @@ SENSITIVE_FILES=(
     "Yubico/u2f_keys"
     "ssh/id_ed25519_sk"
     "ssh/id_ed25519_sk.pub"
+)
+
+# Host-specific files (stored with .<hostname> suffix in cloud)
+HOST_SENSITIVE_FILES=(
+    "ssh/config"
 )
 
 # Files with absolute paths (local:remote pairs, remote relative to REMOTE_DIR)
@@ -47,6 +53,20 @@ cmd_push() {
             mkdir -p "$(dirname "$remote_file")"
             cp "$local_file" "$remote_file"
             printf '%b[pushed]%b %s\n' "$GREEN" "$NC" "$file"
+        else
+            printf '%b[skip]%b %s (not found locally)\n' "$YELLOW" "$NC" "$file"
+        fi
+    done
+
+    # Handle host-specific files (stored with hostname suffix)
+    for file in "${HOST_SENSITIVE_FILES[@]}"; do
+        local_file="$LOCAL_DIR/$file"
+        remote_file="$REMOTE_DIR/${file}.${HOSTNAME}"
+
+        if [ -f "$local_file" ]; then
+            mkdir -p "$(dirname "$remote_file")"
+            cp "$local_file" "$remote_file"
+            printf '%b[pushed]%b %s → %s.%s\n' "$GREEN" "$NC" "$file" "$file" "$HOSTNAME"
         else
             printf '%b[skip]%b %s (not found locally)\n' "$YELLOW" "$NC" "$file"
         fi
@@ -87,6 +107,20 @@ cmd_pull() {
         fi
     done
 
+    # Handle host-specific files (stored with hostname suffix)
+    for file in "${HOST_SENSITIVE_FILES[@]}"; do
+        local_file="$LOCAL_DIR/$file"
+        remote_file="$REMOTE_DIR/${file}.${HOSTNAME}"
+
+        if [ -f "$remote_file" ]; then
+            mkdir -p "$(dirname "$local_file")"
+            cp "$remote_file" "$local_file"
+            printf '%b[pulled]%b %s.%s → %s\n' "$GREEN" "$NC" "$file" "$HOSTNAME" "$file"
+        else
+            printf '%b[skip]%b %s.%s (not found in cloud)\n' "$YELLOW" "$NC" "$file" "$HOSTNAME"
+        fi
+    done
+
     # Handle absolute path files
     for pair in "${SENSITIVE_PATHS[@]}"; do
         local_file="${pair%%:*}"
@@ -107,6 +141,7 @@ cmd_pull() {
 
 cmd_status() {
     printf '%b=== Sensitive files sync status ===%b\n' "$GREEN" "$NC"
+    printf 'Host: %s\n' "$HOSTNAME"
 
     if mountpoint -q "$REMOTE_DIR" 2>/dev/null; then
         printf 'Mount: %b[OK]%b %s\n\n' "$GREEN" "$NC" "$REMOTE_DIR"
@@ -128,6 +163,20 @@ cmd_status() {
         [ -f "$remote_file" ] && remote_status="present"
 
         printf '%-30s %-10s %-10s\n' "$file" "$local_status" "$remote_status"
+    done
+
+    # Handle host-specific files
+    for file in "${HOST_SENSITIVE_FILES[@]}"; do
+        local_file="$LOCAL_DIR/$file"
+        remote_file="$REMOTE_DIR/${file}.${HOSTNAME}"
+
+        local_status="missing"
+        remote_status="missing"
+
+        [ -f "$local_file" ] && local_status="present"
+        [ -f "$remote_file" ] && remote_status="present"
+
+        printf '%-30s %-10s %-10s\n' "${file}.${HOSTNAME}" "$local_status" "$remote_status"
     done
 
     # Handle absolute path files
