@@ -1,0 +1,25 @@
+# SSH client configuration
+# Host-specific settings go in ~/.ssh/config.local (not tracked)
+
+Include ~/.ssh/config.local
+
+# Global defaults
+Host *
+    # Security
+    IdentitiesOnly yes
+    AddKeysToAgent yes
+
+    # Performance
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h-%p
+    ControlPersist 600
+
+    # Keepalive
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# GitHub
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_sk
