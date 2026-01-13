@@ -19,11 +19,14 @@ NC="\033[0m"
 # Files to sync (relative to apps/)
 SENSITIVE_FILES=(
     "Yubico/u2f_keys"
+    "ssh/keys/id_ed25519_sk"
+    "ssh/keys/id_ed25519_sk.pub"
 )
 
 # Directories to sync (all files within, relative to apps/)
+# Add directories here to auto-sync all contents
 SENSITIVE_DIRS=(
-    "ssh/keys"
+    # "example/dir"
 )
 
 # Host-specific files (stored with .<hostname> suffix in cloud)
