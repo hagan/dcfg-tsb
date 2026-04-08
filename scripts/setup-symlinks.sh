@@ -115,6 +115,31 @@ if [ -d "${REPO_ROOT}/apps/Yubico" ]; then
   create_symlink "${REPO_ROOT}/apps/Yubico" "$HOME/.config/Yubico"
 fi
 
+# Starship
+if [ -d "${REPO_ROOT}/apps/starship" ]; then
+  create_symlink "${REPO_ROOT}/apps/starship" "$HOME/.config/starship"
+fi
+
+# Tmux
+if [ -d "${REPO_ROOT}/apps/tmux" ]; then
+  create_symlink "${REPO_ROOT}/apps/tmux" "$HOME/.config/tmux"
+fi
+
+# Lazygit
+if [ -d "${REPO_ROOT}/apps/lazygit" ]; then
+  create_symlink "${REPO_ROOT}/apps/lazygit" "$HOME/.config/lazygit"
+fi
+
+# npm (XDG compliant location)
+if [ -d "${REPO_ROOT}/apps/npm" ]; then
+  create_symlink "${REPO_ROOT}/apps/npm" "$HOME/.config/npm"
+fi
+
+# pypoetry
+if [ -d "${REPO_ROOT}/apps/pypoetry" ]; then
+  create_symlink "${REPO_ROOT}/apps/pypoetry" "$HOME/.config/pypoetry"
+fi
+
 # ============================================================
 # Platform-Specific Service Symlinks
 # ============================================================

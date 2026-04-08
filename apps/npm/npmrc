@@ -1,0 +1,26 @@
+# NPM Configuration
+# Located at ~/.config/npm/npmrc (XDG compliant)
+# Symlinked from ~/.dcfg-tsb/apps/npm/npmrc
+#
+# Note: For npm init with author info, use `npm-init` shell function
+#       which pulls name/email from git config
+
+# Cache location (XDG compliant)
+cache=${XDG_CACHE_HOME}/npm
+
+# Store npm packages in home directory (already handled by nvm)
+# prefix=${XDG_DATA_HOME}/npm
+
+# npm init defaults
+init-license=MIT
+
+# Performance and behavior
+progress=true
+save-exact=false
+engine-strict=false
+
+# Security
+audit-level=moderate
+
+# Registry (default)
+registry=https://registry.npmjs.org/

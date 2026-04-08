@@ -1,0 +1,32 @@
+# Lazygit configuration
+# Located at ~/.config/lazygit/config.yml
+# See: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+
+gui:
+  # Show file icons (requires nerd font)
+  showFileIcons: true
+  # Theme
+  theme:
+    lightTheme: false
+    activeBorderColor:
+      - green
+      - bold
+    inactiveBorderColor:
+      - white
+    selectedLineBgColor:
+      - default
+
+git:
+  # Automatically fetch changes
+  autoFetch: true
+  # Automatically refresh file list
+  autoRefresh: true
+
+os:
+  # Open in default editor
+  editPreset: "nvim"
+
+# Keybindings (defaults are sensible)
+keybinding:
+  universal:
+    quit: q

@@ -1,0 +1,6 @@
+# Poetry configuration
+# Located at ~/.config/pypoetry/config.toml
+
+[virtualenvs]
+# Don't create virtualenvs - let pyenv handle this
+create = false
