@@ -47,3 +47,18 @@
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
+
+# =============================================================================
+# Shell Configuration
+# =============================================================================
+# Default shell (comment out to use system default from $SHELL)
+# command = /bin/zsh
+
+# =============================================================================
+# Custom keybinds
+# =============================================================================
+# Shift+Enter sends escape followed by carriage return
+keybind = shift+enter=text:\x1b\r
+
+# Note: Ghostty doesn't support opening new windows with specific shells via keybinds.
+# Use tmux shell switching instead (Prefix + B/Z/F/N) or the shell aliases (tozsh, etc.)
