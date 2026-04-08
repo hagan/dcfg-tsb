@@ -63,9 +63,12 @@ This repository tracks configuration files that should be version-controlled and
 │
 ├── shell/
 │   ├── posix/                      # Shared bash/zsh code
-│   │   ├── aliases.sh              # Common aliases
+│   │   ├── aliases.sh              # Common aliases + tool wrappers
 │   │   ├── functions.sh            # Utility functions
 │   │   ├── git.sh                  # Git helpers
+│   │   ├── modules/                # Loadable shell modules
+│   │   │   ├── version-managers.sh # pyenv, nvm, goenv, rust/cargo
+│   │   │   └── tools.sh            # direnv, fzf, starship, zoxide
 │   │   └── platforms/              # Platform-specific POSIX code
 │   │       ├── linux.sh
 │   │       └── darwin.sh
@@ -89,17 +92,22 @@ This repository tracks configuration files that should be version-controlled and
 │       └── .gitkeep
 │
 ├── apps/                           # Application configurations
-│   ├── ghostty/
-│   │   └── config
+│   ├── ghostty/config              # Terminal emulator
 │   ├── git/
-│   │   ├── config
-│   │   └── ignore
+│   │   ├── config                  # Git settings
+│   │   ├── ignore                  # Global gitignore
+│   │   └── config.local            # Identity (gitignored)
+│   ├── lazygit/config.yml          # Git TUI
+│   ├── npm/npmrc                   # npm settings (XDG compliant)
+│   ├── pypoetry/config.toml        # Poetry settings
 │   ├── ssh/
-│   │   └── config
-│   ├── Yubico/
-│   │   └── u2f_keys
-│   └── rclone/
-│       └── rclone.conf.template    # Template only, NOT actual config
+│   │   ├── config                  # SSH client config (gitignored)
+│   │   └── keys/                   # SSH keys (gitignored)
+│   ├── starship/starship.toml      # Cross-shell prompt
+│   ├── tmux/
+│   │   ├── tmux.conf               # Tmux config (uses TPM)
+│   │   └── ssh-agent-hooks.conf    # SSH agent integration
+│   └── Yubico/u2f_keys             # FIDO2 registrations (gitignored)
 │
 ├── envs/                           # Environment variable fragments
 │   ├── 000_xdg.env                 # XDG base directories
@@ -154,16 +162,20 @@ module.ssh_forward="on"
 
 ## What Gets Tracked
 
-### Always Track
-- Shell configurations (bash, zsh)
-- Application configs (ghostty, git, ssh client config)
+### Always Track (in git)
+- Shell configurations (bash, zsh, posix modules)
+- Application configs: ghostty, git, lazygit, npm, pypoetry, starship, tmux
 - Service definitions (systemd units, launchd plists)
-- YubiKey FIDO2 registrations
-- Environment setup scripts
+- Scripts and libraries
 
-### Never Track
-- `rclone/rclone.conf` - Contains OAuth tokens
-- `~/.ssh/id_*` - Private keys
+### Never Track (gitignored, synced via dcfg-sync)
+- `apps/Yubico/u2f_keys` - FIDO2 registrations
+- `apps/ssh/keys/` - SSH private/public keys
+- `apps/ssh/config` - SSH client config (host-specific)
+- `apps/git/config.local` - Git identity (name, email)
+- `~/.config/rclone/rclone.conf` - OAuth tokens
+
+### Never Track (local only)
 - `dconf/` - GNOME binary database
 - `gtk-*/`, `pulse/` - Auto-generated desktop configs
 - Any file containing passwords, API keys, or tokens
@@ -213,11 +225,19 @@ The setup script creates symlinks based on detected platform:
 # Shell configs (all platforms)
 ~/.bashrc           → ~/.dcfg-tsb/shell/bash/.bashrc
 ~/.zshrc            → ~/.dcfg-tsb/shell/zsh/.zshrc
+~/.profile          → ~/.dcfg-tsb/shell/bash/.profile
 
 # App configs (all platforms)
 ~/.config/ghostty/  → ~/.dcfg-tsb/apps/ghostty/
 ~/.config/git/      → ~/.dcfg-tsb/apps/git/
 ~/.gitconfig        → ~/.dcfg-tsb/apps/git/config
+~/.config/lazygit/  → ~/.dcfg-tsb/apps/lazygit/
+~/.config/npm/      → ~/.dcfg-tsb/apps/npm/
+~/.config/pypoetry/ → ~/.dcfg-tsb/apps/pypoetry/
+~/.config/starship/ → ~/.dcfg-tsb/apps/starship/
+~/.config/tmux/     → ~/.dcfg-tsb/apps/tmux/
+~/.config/Yubico/   → ~/.dcfg-tsb/apps/Yubico/
+~/.ssh/config       → ~/.dcfg-tsb/apps/ssh/config
 
 # Services (platform-specific)
 # Linux:
@@ -239,10 +259,69 @@ for module in "$DCFG_ROOT/shell/posix"/*.sh; do
     [ -r "$module" ] && source "$module"
 done
 
+# Source modules subdirectory
+for module in "$DCFG_ROOT/shell/posix/modules"/*.sh; do
+    [ -r "$module" ] && source "$module"
+done
+
 # Source platform-specific module
 platform=$(uname -s | tr '[:upper:]' '[:lower:]')
 [ -r "$DCFG_ROOT/shell/posix/platforms/$platform.sh" ] && \
     source "$DCFG_ROOT/shell/posix/platforms/$platform.sh"
+```
+
+### Shell Modules
+
+| Module | Description |
+|--------|-------------|
+| `version-managers.sh` | Initializes pyenv, nvm (lazy-loaded), goenv, rust/cargo |
+| `tools.sh` | Initializes direnv, fzf, starship, zoxide |
+
+### Tool Wrappers (in aliases.sh)
+
+| Command | Description |
+|---------|-------------|
+| `npm-init` | `npm init` with author info from git config |
+
+## Shell Switching
+
+The default login shell is whatever `chsh` sets (typically bash). Shell switching is always explicit/manual.
+
+### Config Settings
+
+```bash
+# config/rc.conf (informational, does not auto-switch)
+shell.preferred="zsh"
+shell.available="bash zsh"
+```
+
+### Quick Switch Commands
+
+| Command | Description |
+|---------|-------------|
+| `tobash` | Switch current terminal to bash |
+| `tozsh` | Switch current terminal to zsh |
+| `tofish` | Switch current terminal to fish |
+| `tonu` | Switch current terminal to nushell |
+| `shells` | Show current, default, and available shells |
+
+### Tmux Shell Windows (Prefix = Ctrl+Space)
+
+| Keybind | Action |
+|---------|--------|
+| `Prefix + B` | New window with bash |
+| `Prefix + Z` | New window with zsh |
+| `Prefix + F` | New window with fish |
+| `Prefix + N` | New window with nushell |
+| `Prefix + Alt+b/z/f/n` | Split pane with specific shell |
+
+### Tmux Session Commands
+
+```bash
+tmux-bash [name]   # New tmux session with bash
+tmux-zsh [name]    # New tmux session with zsh
+tmux-fish [name]   # New tmux session with fish
+tmux-nu [name]     # New tmux session with nushell
 ```
 
 ## Future: Fish & PowerShell
