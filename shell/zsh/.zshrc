@@ -54,7 +54,15 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'  # Case insensitive
 # Source POSIX Shared Modules
 # ============================================================
 if [[ -d "${DCFG_ROOT}/shell/posix" ]]; then
-    for module in "${DCFG_ROOT}/shell/posix"/*.sh; do
+    # (N) = NULL_GLOB - expands to nothing if no matches (no error)
+    for module in "${DCFG_ROOT}/shell/posix"/*.sh(N); do
+        [[ -r "$module" ]] && source "$module"
+    done
+fi
+
+# Source POSIX modules subdirectory
+if [[ -d "${DCFG_ROOT}/shell/posix/modules" ]]; then
+    for module in "${DCFG_ROOT}/shell/posix/modules"/*.sh(N); do
         [[ -r "$module" ]] && source "$module"
     done
 fi
@@ -70,7 +78,8 @@ unset _platform
 # Source Zsh-Specific Modules
 # ============================================================
 if [[ -d "${DCFG_ROOT}/shell/zsh/modules" ]]; then
-    for module in "${DCFG_ROOT}/shell/zsh/modules"/*.zsh; do
+    # (N) = NULL_GLOB - expands to nothing if no matches (no error)
+    for module in "${DCFG_ROOT}/shell/zsh/modules"/*.zsh(N); do
         [[ -r "$module" ]] && source "$module"
     done
 fi

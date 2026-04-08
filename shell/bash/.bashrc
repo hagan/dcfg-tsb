@@ -45,6 +45,13 @@ if [ -d "${DCFG_ROOT}/shell/posix" ]; then
     done
 fi
 
+# Source POSIX modules subdirectory
+if [ -d "${DCFG_ROOT}/shell/posix/modules" ]; then
+    for module in "${DCFG_ROOT}/shell/posix/modules"/*.sh; do
+        [ -r "$module" ] && . "$module"
+    done
+fi
+
 # Source platform-specific POSIX module
 _platform=$(uname -s | tr '[:upper:]' '[:lower:]')
 if [ -r "${DCFG_ROOT}/shell/posix/platforms/${_platform}.sh" ]; then
